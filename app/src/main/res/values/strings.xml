@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PB.Lesson3</string>
-    <string name="load_img">Select Image File</string>
+    <string name="load_img">Select Image</string>
+    <string name="save_img">Save Image</string>
 </resources>

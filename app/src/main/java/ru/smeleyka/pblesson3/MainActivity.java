@@ -25,10 +25,14 @@ import io.reactivex.functions.Consumer;
 public class MainActivity extends AppCompatActivity {
 
     public static final int GET_IMG = 123;
+    public static final String TAG = "TEST";
+    protected Disposable selectButtonSubscription;
+    protected Disposable saveButtonSubscription;
+
     @BindView(R.id.select_button)   Button selectButton;
+    @BindView(R.id.save_button)     Button saveButton;
     @BindView(R.id.text_view)       TextView textView;
     @BindView(R.id.image_view)      ImageView imageView;
-    Disposable selectButtonSubscription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,19 +40,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         onSelectButton();
+        onSaveButton();
+    }
 
+    private void onSaveButton() {
+        Log.d(TAG, "SaveButtonClicked");
+        saveButtonSubscription = RxView.clicks(selectButton).subscribe(o -> selectFile());
+    }
+
+    private void saveFile(Bitmap sourceBitmap,Uri sourceUri) {
+        MediaStore.Images.Media.insertImage(this.getContentResolver(),sourceBitmap,sourceUri.getAuthority(),"");
+    }
+
+    private void onSelectButton() {
+        Log.d(TAG, "SelectButtonClicked");
+        selectButtonSubscription = RxView.clicks(selectButton).subscribe(o -> selectFile());
     }
 
     private void selectFile() {
-        Log.d("TEST", "ButtonClicked");
         Intent intent = new Intent()
                 .setType("image/*")
                 .setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent, "Select a file"), GET_IMG);
-    }
-
-    private void onSelectButton() {
-        selectButtonSubscription = RxView.clicks(selectButton).subscribe(o -> selectFile());
     }
 
     @Override
@@ -57,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == GET_IMG && resultCode == RESULT_OK) {
             try {
                 Uri selectedfile = data.getData();
+                Log.d(TAG, selectedfile.toString());
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedfile);
                 showImage(bitmap);
             } catch (IOException e) {
@@ -66,9 +80,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showImage(Bitmap bitmap) {
-        Log.d("TEST", ""+bitmap.getConfig());
+        Log.d(TAG, "Show Image"+bitmap.getConfig());
         textView.setText(bitmap.getWidth()+"x"+bitmap.getHeight());
         imageView.setImageBitmap(bitmap);
-        bitmap.getConfig();
     }
 }
