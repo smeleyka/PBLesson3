@@ -22,12 +22,13 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainView{
 
     public static final int GET_IMG = 123;
     public static final String TAG = "TEST";
     protected Disposable selectButtonSubscription;
     protected Disposable saveButtonSubscription;
+    private Bitmap loadedBitmap;
 
     @BindView(R.id.select_button)   Button selectButton;
     @BindView(R.id.save_button)     Button saveButton;
@@ -44,20 +45,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onSaveButton() {
-        Log.d(TAG, "SaveButtonClicked");
-        saveButtonSubscription = RxView.clicks(selectButton).subscribe(o -> selectFile());
+        saveButtonSubscription = RxView.clicks(saveButton).subscribe(o -> saveFile(loadedBitmap));
     }
 
-    private void saveFile(Bitmap sourceBitmap,Uri sourceUri) {
-        MediaStore.Images.Media.insertImage(this.getContentResolver(),sourceBitmap,sourceUri.getAuthority(),"");
+    private void saveFile(Bitmap sourceBitmap) {
+        Log.d(TAG, "SaveButtonClicked");
+        MediaStore.Images.Media.insertImage(this.getContentResolver(),sourceBitmap,"title","descr");
     }
 
     private void onSelectButton() {
-        Log.d(TAG, "SelectButtonClicked");
         selectButtonSubscription = RxView.clicks(selectButton).subscribe(o -> selectFile());
     }
 
     private void selectFile() {
+        Log.d(TAG, "SelectButtonClicked");
         Intent intent = new Intent()
                 .setType("image/*")
                 .setAction(Intent.ACTION_GET_CONTENT);
@@ -71,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Uri selectedfile = data.getData();
                 Log.d(TAG, selectedfile.toString());
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedfile);
-                showImage(bitmap);
+                loadedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedfile);
+                showImage(loadedBitmap);
             } catch (IOException e) {
                 e.printStackTrace();
             }
